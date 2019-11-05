@@ -3,3 +3,4 @@
 . filter=lfs diff=lfs merge=lfs -text
 [[:space:]]TDM/streets filter=lfs diff=lfs merge=lfs -text
 [[:space:]]TDM/streets/N* filter=lfs diff=lfs merge=lfs -text
+[[:space:]]TDM/streets/gN* filter=lfs diff=lfs merge=lfs -text
