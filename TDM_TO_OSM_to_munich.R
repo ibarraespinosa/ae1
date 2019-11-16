@@ -1,3 +1,6 @@
+remotes::install_github("atmoschem/vein")
+remotes::install_github("atmoschem/eixport")
+
 library(sf)
 library(eixport)
 library(vein)

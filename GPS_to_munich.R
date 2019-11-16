@@ -1,7 +1,9 @@
+remotes::install_github("atmoschem/vein")
+remotes::install_github("atmoschem/eixport")
+
 library(sf)
 library(eixport)
 library(vein)
-library(osmdata)
 library(units)
 library(cptcity)
 setwd("~/Documents/pedals/ae1/") # changfe to the path where you cloned the repository
