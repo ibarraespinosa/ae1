@@ -4,7 +4,11 @@ library(vein)
 library(osmdata)
 library(units)
 library(cptcity)
-
+setwd("~/Documents/pedals/ae1/") # changfe to the path where you cloned the repository
+dir.create("TDM/munich")
+dir.create("TDM/munich/TDM_TO_OSM/")
+dir.create("TDM/munich/TDM_TO_OSM/rds_emis_to_munich")
+dir.create("TDM/munich/TDM_TO_OSM/csv_emis_to_munich")
 # Reads streets TDM emissions 
 # creates emissions grid
 # pass the emissions t the OSM network
@@ -49,7 +53,7 @@ no <- readRDS("TDM/streets/NO_street.rds")
 no2 <- readRDS("TDM/streets/NO2_street.rds")
 
 # # cropping
-area <- read_sf("routes.shp")
+area <- read_sf("../routes.shp")
 co <- st_crop(co, st_bbox(area))
 no <- st_crop(no, st_bbox(area))
 no2 <- st_crop(no2, st_bbox(area))
@@ -71,29 +75,25 @@ gev <- emis_grid(ev, g)
 ghctotal <- ghc
 for(i in 1:168){  ghctotal[[horas[i]]] <- ghc[[horas[i]]] + ghc1[[horas[i]]] + gev[[horas[i]]]}
 
-# saving
-saveRDS(gco, "gco.rds")
-saveRDS(gno, "gno.rds")
-saveRDS(gno2, "gno2.rds")
-saveRDS(ghctotal, "ghctotal.rds")
 
 # downloading OSM
 osm <- osmdata_sf(
   add_osm_feature(
     opq(bbox = st_bbox(st_transform(area, 4326))),
     key = 'highway'))$osm_lines[, c("highway")]
-osm <- st_crop(st_transform(osm, 31983), st_bbox(area))
+osm <- st_crop(osm, st_bbox(st_transform(area, 4326)))
 st <- c("motorway", "motorway_link", "trunk", "trunk_link",
         "primary", "primary_link", "secondary", "secondary_link",
         "tertiary", "tertiary_link")
 
 # selecting streets
 osm <- osm[osm$highway %in% st, ]
+saveRDS(osm, "TDM/munich/TDM_TO_OSM/osm.rds")
+osm <- readRDS("TDM/munich/TDM_TO_OSM/osm.rds")
 
 # Exploding lines
-osm <- sfx_explode(osm)
+osm <- eixport::sfx_explode(osm) # it seems that it only works with lat lon
 
-saveRDS(osm, "osm_pedals.rds")
 plot(osm, axes = T)
 
 # creating buffer
@@ -102,26 +102,26 @@ areab <- st_union(areab)
 osm$id <- 1:nrow(osm)
 
 # intersecting
-osmb <- st_intersection(osm, areab)
+osmb <- st_intersection(st_transform(osm, 31983), areab)
 
 # selecting streets inside area
-osmbb <- osm[osm$id %in% unique(osmb$id), ]
+osmbb <- st_transform(osm[osm$id %in% unique(osmb$id), ], 31983)
 plot(area$geometry, reset = F, col = "blue", lwd = 3, axes = T)
 plot(areab, add = T)
 plot(osmbb$geometry, add = T, col = "red")
 legend(x = 327000, y = 7395550, 
        legend = c("Rotas Bicicleta","Buffer Rotas 100 m", "Ruas com emissoes"), 
-       fill = c("blue", "black", "red"),text.col = "white")
+       fill = c("blue", "black", "red"),text.col = "black")
 
 # CO
 names(gco) <- gsub(pattern = "h", replacement = "V", x = names(gco))
 a <- grid_emis(spobj = osmbb, g = gco)
 horas <- paste0("V", 1:168)
 for(i in 1:168){  a[[horas[i]]] <- set_units(as.numeric(a[[horas[i]]])/3600, "g/s")}
-saveRDS(a, "TDM_TO_OSM/rds_emis_to_munich/CO_hourly_grams_seconds.rds")
+saveRDS(a, "TDM/munich/TDM_TO_OSM/rds_emis_to_munich/CO_hourly_grams_seconds.rds")
 lf <- to_munich(a[horas])
-write.csv(lf$Emissions, "TDM_TO_OSM/csv_emis_to_munich/Emissions_CO_hourly_grams_seconds.csv", row.names = FALSE)
-write.csv(lf$Street, "TDM_TO_OSM/csv_emis_to_munich/Streets_CO_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Emissions, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Emissions_CO_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Street, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Streets_CO_hourly_grams_seconds.csv", row.names = FALSE)
 
 
 # NO2
@@ -129,20 +129,20 @@ names(gno2) <- gsub(pattern = "h", replacement = "V", x = names(gno2))
 a <- grid_emis(spobj = osmbb, g = gno2)
 horas <- paste0("V", 1:168)
 for(i in 1:168){  a[[horas[i]]] <- set_units(as.numeric(a[[horas[i]]])/3600, "g/s")}
-saveRDS(a, "TDM_TO_OSM/rds_emis_to_munich/NO2_hourly_grams_seconds.rds")
+saveRDS(a, "TDM/munich/TDM_TO_OSM/rds_emis_to_munich/NO2_hourly_grams_seconds.rds")
 lf <- to_munich(a[horas])
-write.csv(lf$Emissions, "TDM_TO_OSM/csv_emis_to_munich/Emissions_NO2_hourly_grams_seconds.csv", row.names = FALSE)
-write.csv(lf$Street, "TDM_TO_OSM/csv_emis_to_munich/Streets_NO2_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Emissions, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Emissions_NO2_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Street, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Streets_NO2_hourly_grams_seconds.csv", row.names = FALSE)
 
 # NO
 names(gno) <- gsub(pattern = "h", replacement = "V", x = names(gno))
 a <- grid_emis(spobj = osmbb, g = gno)
 horas <- paste0("V", 1:168)
 for(i in 1:168){  a[[horas[i]]] <- set_units(as.numeric(a[[horas[i]]])/3600, "g/s")}
-saveRDS(a, "TDM_TO_OSM/rds_emis_to_munich/NO_hourly_grams_seconds.rds")
+saveRDS(a, "TDM/munich/TDM_TO_OSM/rds_emis_to_munich/NO_hourly_grams_seconds.rds")
 lf <- to_munich(a[horas])
-write.csv(lf$Emissions, "TDM_TO_OSM/csv_emis_to_munich/Emissions_NO_hourly_grams_seconds.csv", row.names = FALSE)
-write.csv(lf$Street, "TDM_TO_OSM/csv_emis_to_munich/Streets_NO_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Emissions, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Emissions_NO_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Street, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Streets_NO_hourly_grams_seconds.csv", row.names = FALSE)
 
 
 # HC
@@ -150,10 +150,10 @@ names(ghc) <- gsub(pattern = "h", replacement = "V", x = names(ghc))
 a <- grid_emis(spobj = osmbb, g = ghc)
 horas <- paste0("V", 1:168)
 for(i in 1:168){  a[[horas[i]]] <- set_units(as.numeric(a[[horas[i]]])/3600, "g/s")}
-saveRDS(a, "TDM_TO_OSM/rds_emis_to_munich/HC_hourly_grams_seconds.rds")
+saveRDS(a, "TDM/munich/TDM_TO_OSM/rds_emis_to_munich/HC_hourly_grams_seconds.rds")
 lf <- to_munich(a[horas])
-write.csv(lf$Emissions, "TDM_TO_OSM/csv_emis_to_munich/Emissions_HC_hourly_grams_seconds.csv", row.names = FALSE)
-write.csv(lf$Street, "TDM_TO_OSM/csv_emis_to_munich/Streets_HC_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Emissions, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Emissions_HC_hourly_grams_seconds.csv", row.names = FALSE)
+write.csv(lf$Street, "TDM/munich/TDM_TO_OSM/csv_emis_to_munich/Streets_HC_hourly_grams_seconds.csv", row.names = FALSE)
 
 
 par(bg = 'white')
