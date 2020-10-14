@@ -10,5 +10,11 @@ Title:
 
 Authors: 
 
-Sergio Ibarra-Espinosa sergio.ibarra@usp.br,Rita Ynoue rita.ynoue@iag.usp.br, Karl Ropkins K.Ropkins@its.leeds.ac.uk, Xuelei Zhang zhangxuelei@iga.ac.cn, Edmilson Dias de Freitas edmilson.freitas@iag.usp.br
+Sergio Ibarra-Espinosa sergio.ibarra@usp.br,Rita Ynoue, Karl Ropkins, Xuelei Zhang, Edmilson Dias de Freitas
 
+
+## Inputs for MUNICH
+
+Follow this code on [Earth Science Stack Overflow](https://earthscience.stackexchange.com/questions/20336/how-to-generate-inputs-for-the-munich-model-from-the-vein-model/20337#20337)
+
+![](https://i.imgur.com/Ev3yKAF.png)
